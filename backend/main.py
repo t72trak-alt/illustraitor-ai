@@ -153,31 +153,6 @@ def generate(request: GenerateRequest):
         error_msg = str(e)
         logger.error(f"Ошибка OpenAI (полная): {error_msg}")
         logger.error(f"Traceback: {traceback.format_exc()}")
-        
-        logger.info("Возвращаем демо-режим из-за ошибки OpenAI")
-        
-        # Проверяем ошибку региона
-        if 'Country' in error_msg or 'region' in error_msg or 'territory' in error_msg:
-            logger.info("Обнаружена ошибка региона")
-            return JSONResponse(
-                content={
-                    "status": "success",
-                    "mode": "demo_region_error",
-                    "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
-                    "message": "OpenAI недоступен в вашем регионе. Используется демо-изображение.",
-                    "error": error_msg,
-                    "style": request.style,
-                    "style_name": STYLES[request.style]["name"]
-                },
-                media_type="application/json; charset=utf-8"
-            )
-        
-        return JSONResponse(
-            content={
-                "status": "error",
-                "mode": "error",
-                "error": error_msg,
-                "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
                 "style": request.style,
                 "style_name": STYLES[request.style]["name"]
             },
