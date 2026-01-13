@@ -54,8 +54,8 @@ def get_styles():
 @app.post("/generate")
 def generate(request: GenerateRequest):
     logger.info("=== НАЧАЛО GENERATE ===")
-    logger.info(f"Текст: {request.text.encode(\"utf-8\").decode(\"utf-8\")}")
-    logger.info(f"Стиль: {request.style.encode(\"utf-8\").decode(\"utf-8\")}")
+        logger.info("Текст получен (русские символы)")
+        logger.info(f"Стиль ID: {request.style}")
     logger.info(f"API ключ предоставлен: {bool(request.api_key)}")
     # Проверка стиля
     if request.style not in STYLES:
@@ -98,7 +98,7 @@ def generate(request: GenerateRequest):
         client = OpenAI(api_key=api_key)
         logger.info("Клиент OpenAI создан")
         # Кодируем текст для безопасности (уже исправлено ранее)
-        safe_text = request.text.encode("utf-8").decode("utf-8")
+        safe_text = request.text  # UTF-8 уже обработан
         prompt = f"{STYLES[request.style]['prompt']}: {safe_text}"
         response = client.images.generate(
             model="dall-e-3",
@@ -118,7 +118,12 @@ def generate(request: GenerateRequest):
             "style_name": STYLES[request.style]["name"]
         }
     except Exception as e:
-        error_msg = str(e)
+    error_msg = str(e)
+    logger.error(f"Ошибка OpenAI (полная): {error_msg}")
+    import traceback
+    logger.error(f"Traceback: {traceback.format_exc()}")
+    # УБИРАЕМ перезапуск сервера - возвращаем демо вместо падения
+    logger.info("Возвращаем демо-режим из-за ошибки OpenAI")
         logger.error(f"Ошибка OpenAI: {error_msg}")
         # Проверяем ошибку региона
         if 'Country' in error_msg or 'region' in error_msg or 'territory' in error_msg:
@@ -152,6 +157,8 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
+
 
 
 
