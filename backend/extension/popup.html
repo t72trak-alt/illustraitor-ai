@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Illustraitor AI Pro</title>
+    <style>
+        body {
+            width: 350px;
+            padding: 15px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin: 0;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #764ba2;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        .api-key-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .api-key-section.collapsed {
+            padding: 5px 10px;
+        }
+        .api-key-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #495057;
+        }
+        .api-key-content {
+            margin-top: 10px;
+        }
+        .api-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .api-status.valid {
+            background-color: #28a745;
+        }
+        .api-status.invalid {
+            background-color: #dc3545;
+        }
+        .api-status.unknown {
+            background-color: #ffc107;
+        }
+        #api-key-input {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            box-sizing: border-box;
+            margin-top: 8px;
+            font-family: monospace;
+        }
+        #api-key-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        #prompt-input {
+            width: 100%;
+            height: 60px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        #prompt-input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .style-selector {
+            margin-bottom: 20px;
+        }
+        .style-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .style-btn {
+            flex: 1;
+            min-width: 70px;
+            padding: 8px 12px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: #555;
+        }
+        .style-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        .style-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #764ba2;
+            font-weight: bold;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        #generateBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        #generateBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        #generateBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        #batchBtn {
+            background: #f0f0f0;
+            color: #555;
+            border: 2px solid #ddd;
+        }
+        #batchBtn.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #388E3C;
+        }
+        #testApiBtn {
+            background: #6c757d;
+            color: white;
+            font-size: 12px;
+            padding: 6px 12px;
+            margin-top: 5px;
+        }
+        #status {
+            min-height: 40px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        #status img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 2px solid #ddd;
+        }
+        #status a {
+            display: inline-block;
+            margin-top: 8px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        #status a:hover {
+            text-decoration: underline;
+        }
+        .credits {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #777;
+        }
+        .mode-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .mode-openai {
+            background: #10a37f;
+            color: white;
+        }
+        .mode-mock {
+            background: #6c757d;
+            color: white;
+        }
+        .collapsible-icon {
+            transition: transform 0.3s;
+        }
+        .collapsible-icon.rotated {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Illustraitor AI Pro</h1>
+        <!-- Секция API ключа -->
+        <div class="api-key-section" id="apiKeySection">
+            <div class="api-key-header" id="apiKeyHeader">
+                <div>
+                    <span class="api-status unknown" id="apiStatus"></span>
+                    <span id="apiKeyLabel">API ключ (нажмите чтобы раскрыть)</span>
+                </div>
+                <div class="collapsible-icon" id="collapsibleIcon">▼</div>
+            </div>
+            <div class="api-key-content" id="apiKeyContent" style="display: none;">
+                <input type="password" id="api-key-input" placeholder="Введите ваш API ключ (ilust_... или openai sk-...)">
+                <button id="testApiBtn">🔍 Проверить ключ</button>
+                <div style="font-size: 11px; color: #666; margin-top: 5px;">
+                    <div>• Для демо: оставьте пустым (используется Unsplash)</div>
+                    <div>• Для реальной генерации: введите ключ из регистрации</div>
+                </div>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="prompt-input">Опишите изображение:</label>
+            <textarea id="prompt-input" placeholder="Например: Красивый закат над горами в стиле фэнтези..."></textarea>
+        </div>
+        <div class="style-selector">
+            <label>Стиль изображения:</label>
+            <div class="style-buttons">
+                <div class="style-btn active" data-style="creative">🎨 Креативный</div>
+                <div class="style-btn" data-style="fantasy">🧙 Фэнтези</div>
+                <div class="style-btn" data-style="minimalistic">⬜ Минимализм</div>
+                <div class="style-btn" data-style="realistic">📷 Реализм</div>
+                <div class="style-btn" data-style="anime">🌸 Аниме</div>
+                <div class="style-btn" data-style="vector">🔷 Векторный</div>
+                <div class="style-btn" data-style="cyberpunk">🤖 Киберпанк</div>
+                <div class="style-btn" data-style="watercolor">🎨 Акварель</div>
+            </div>
+        </div>
+        <div class="controls">
+            <button id="batchBtn">Пакетная генерация (ВЫКЛ)</button>
+            <button id="generateBtn">Сгенерировать иллюстрацию</button>
+        </div>
+        <div id="status">
+            Готов к работе! Введите описание и нажмите "Сгенерировать"
+        </div>
+        <div class="credits">
+            <div>Illustraitor AI Pro v2.0.0</div>
+            <div>© 2024 Все права защищены</div>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>

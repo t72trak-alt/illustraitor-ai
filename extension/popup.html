@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Illustraitor AI</title>
+    <style>
+        body {
+            width: 400px;
+            padding: 15px;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        h1 {
+            color: #4a4a4a;
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        #result {
+            display: none;
+            margin-top: 15px;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+        #imageResult {
+            max-width: 100%;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+        .download-btn {
+            display: none;
+            background-color: #008CBA;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .download-btn:hover {
+            background-color: #007399;
+        }
+        .info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Illustraitor AI</h1>
+        <label for="prompt">Описание изображения:</label>
+        <input type="text" id="prompt" placeholder="Опишите что вы хотите создать...">
+        <label for="style">Стиль изображения:</label>
+        <select id="style">
+            <option value="">Загружаю стили...</option>
+        </select>
+        <button id="generate">🎨 Сгенерировать изображение</button>
+        <div id="status">Готов к работе...</div>
+        <div id="result">
+            <h3>Результат:</h3>
+            <img id="imageResult" alt="Сгенерированное изображение">
+            <a id="downloadLink" class="download-btn" download="illustration.jpg">
+                ⬇️ Скачать изображение
+            </a>
+        </div>
+        <div class="info">
+            Использует AI для генерации изображений. 15 стилей доступно.
+        </div>
+    </div>
+    <script type="module" src="popup.js"></script>
+</body>
+</html>

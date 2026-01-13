@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            width: 400px;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 12px;
+            color: #333;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        h2 {
+            color: #667eea;
+            text-align: center;
+            margin-top: 0;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .api-key {
+            background: #e8f4fd;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            word-break: break-all;
+            border: 1px dashed #4dabf7;
+        }
+        .credits-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin: 15px 0;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .plan {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .plan:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        .plan.selected {
+            border-color: #4CAF50;
+            background: #f0fff4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🎨 Illustraitor AI Pro</h2>
+        <div class="section">
+            <h3>👤 Ваш аккаунт</h3>
+            <div id="userInfo">
+                <p>Загрузка...</p>
+            </div>
+            <div class="credits-display" id="creditsDisplay">0 кредитов</div>
+        </div>
+        <div class="section">
+            <h3>🔑 API ключ</h3>
+            <div class="api-key" id="apiKey">Не зарегистрирован</div>
+            <button class="btn-secondary" id="copyApiKeyBtn">📋 Копировать API ключ</button>
+            <button class="btn-primary" id="registerBtn">📝 Зарегистрироваться</button>
+        </div>
+        <div class="section">
+            <h3>💰 Купить кредиты</h3>
+            <div class="plan" data-credits="10" data-price="0">
+                <h4>🎁 Бесплатный пакет</h4>
+                <p>10 кредитов</p>
+                <p><strong>Бесплатно</strong></p>
+            </div>
+            <div class="plan" data-credits="50" data-price="4.99">
+                <h4>🚀 Стартовый пакет</h4>
+                <p>50 кредитов</p>
+                <p><strong>$4.99</strong></p>
+            </div>
+            <div class="plan" data-credits="200" data-price="14.99">
+                <h4>💼 Профессиональный</h4>
+                <p>200 кредитов</p>
+                <p><strong>$14.99</strong></p>
+            </div>
+            <button class="btn-primary" id="buyCreditsBtn" disabled>Купить выбранный пакет</button>
+        </div>
+        <div class="section">
+            <h3>⚙️ Настройки</h3>
+            <label for="apiEndpoint">Сервер API:</label>
+            <input type="text" id="apiEndpoint" value="http://127.0.0.1:8000">
+            <label for="defaultStyle">Стиль по умолчанию:</label>
+            <select id="defaultStyle">
+                <!-- Заполнится JavaScript -->
+            </select>
+            <button class="btn-secondary" id="saveSettingsBtn">💾 Сохранить настройки</button>
+            <button class="btn-danger" id="resetBtn">🔄 Сбросить всё</button>
+        </div>
+        <div class="section">
+            <h3>📊 Статистика</h3>
+            <p>Всего сгенерировано: <span id="totalGenerations">0</span> изображений</p>
+            <p>Использовано кредитов: <span id="totalCreditsUsed">0</span></p>
+            <button class="btn-secondary" id="viewHistoryBtn">📜 Показать историю</button>
+        </div>
+    </div>
+    <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+﻿fastapi==0.104.1
+uvicorn[standard]==0.24.0
+openai==0.28.1
+python-dotenv==1.0.0
+requests==2.31.0
+orjson==3.9.10
