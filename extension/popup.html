@@ -95,6 +95,47 @@
         <select id="style">
             <option value="">Загружаю стили...</option>
         </select>
+        <!-- Секция API ключа -->
+        <div class="api-key-section" style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+            <h4 style="margin-top: 0; color: #2c3e50;">🔑 OpenAI API Ключ (необязательно)</h4>
+            
+            <div style="margin-bottom: 12px;">
+                <input type="password" id="api-key" placeholder="Введите ваш API ключ OpenAI (sk-...)" 
+                       style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;">
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                <button id="save-key" style="flex: 1; padding: 10px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+                    💾 Сохранить ключ
+                </button>
+                <button id="clear-key" style="flex: 1; padding: 10px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                    🗑️ Удалить ключ
+                </button>
+            </div>
+            
+            <div style="font-size: 12px; color: #6c757d; line-height: 1.5;">
+                <p><strong>📌 Как это работает:</strong></p>
+                <ul style="margin: 5px 0; padding-left: 15px;">
+                    <li><strong>Без ключа:</strong> Демо-режим с изображениями из библиотеки</li>
+                    <li><strong>С ключом:</strong> AI-генерация через DALL-E 3 (лучшее качество)</li>
+                </ul>
+                
+                <p><strong>🔐 Где взять ключ:</strong></p>
+                <div style="background: #e7f5ff; padding: 8px; border-radius: 4px; margin: 5px 0;">
+                    <ol style="margin: 0; padding-left: 15px;">
+                        <li>Перейдите на <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #007bff; text-decoration: none;">OpenAI Platform</a></li>
+                        <li>Авторизуйтесь или создайте аккаунт</li>
+                        <li>Нажмите "Create new secret key"</li>
+                        <li>Скопируйте ключ (начинается с sk-...)</li>
+                        <li>Вставьте ключ в поле выше</li>
+                    </ol>
+                </div>
+                
+                <p style="margin-top: 8px; padding: 6px; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107;">
+                    <strong>⚠️ Важно:</strong> Ключ хранится только на вашем устройстве и не передаётся нам
+                </p>
+            </div>
+        </div>
         <button id="generate">🎨 Сгенерировать изображение</button>
         <div id="status">Готов к работе...</div>
         <div id="result">
@@ -111,3 +152,4 @@
     <script type="module" src="popup.js"></script>
 </body>
 </html>
+
