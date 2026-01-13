@@ -54,8 +54,8 @@ def get_styles():
 @app.post("/generate")
 def generate(request: GenerateRequest):
     logger.info("=== НАЧАЛО GENERATE ===")
-    logger.info(f"Текст: {request.text}")
-    logger.info(f"Стиль: {request.style}")
+    logger.info(f"Текст: {request.text.encode(\"utf-8\").decode(\"utf-8\")}")
+    logger.info(f"Стиль: {request.style.encode(\"utf-8\").decode(\"utf-8\")}")
     logger.info(f"API ключ предоставлен: {bool(request.api_key)}")
     # Проверка стиля
     if request.style not in STYLES:
@@ -86,9 +86,20 @@ def generate(request: GenerateRequest):
     # OpenAI режим
     logger.info("Режим: OPENAI")
     try:
-        client = OpenAI(api_key=request.api_key)
+        # Используем ключ из запроса или из переменных окружения
+        api_key = request.api_key or os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            logger.error("API ключ не предоставлен и не найден в переменных окружения")
+            return {
+                "status": "error",
+                "error": "API ключ не предоставлен. Добавьте OPENAI_API_KEY в переменные окружения или укажите в запросе.",
+                "mode": "error"
+            }
+        client = OpenAI(api_key=api_key)
         logger.info("Клиент OpenAI создан")
-        prompt = f"{STYLES[request.style]['prompt']}: {request.text}"
+        # Кодируем текст для безопасности (уже исправлено ранее)
+        safe_text = request.text.encode("utf-8").decode("utf-8")
+        prompt = f"{STYLES[request.style]['prompt']}: {safe_text}"
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
@@ -141,3 +152,7 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
+
+
+
