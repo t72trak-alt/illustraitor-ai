@@ -151,29 +151,17 @@ def generate(request: GenerateRequest):
         )
     except Exception as e:
         error_msg = str(e)
-        logger.error(f"Ошибка OpenAI (полная): {error_msg}")
+        logger.error(f"Ошибка OpenAI: {error_msg}")
         logger.error(f"Traceback: {traceback.format_exc()}")
+
+        return JSONResponse(
+            content={
+                "status": "error",
+                "mode": "error",
+                "error": "OpenAI API error",
+                "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
                 "style": request.style,
                 "style_name": STYLES[request.style]["name"]
             },
             media_type="application/json; charset=utf-8"
         )
-
-# Отключение proxy при запуске
-proxy_vars = ['http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'all_proxy', 'ALL_PROXY']
-for var in proxy_vars:
-    if var in os.environ:
-        del os.environ[var]
-os.environ['NO_PROXY'] = '*'
-
-if __name__ == "__main__":
-    import uvicorn
-    import os
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
-
-
-
-
-
-
