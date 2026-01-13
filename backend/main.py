@@ -1,14 +1,18 @@
 ﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 from openai import OpenAI
 import os
 import logging
+import traceback
 from datetime import datetime
+
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -16,10 +20,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 class GenerateRequest(BaseModel):
     text: str
     style: str = "fantasy"
     api_key: Optional[str] = None
+
 # Стили (15 вариантов)
 STYLES = {
     "business": {"name": "Бизнес", "prompt": "professional corporate style, clean lines, modern"},
@@ -38,9 +44,14 @@ STYLES = {
     "vintage": {"name": "Винтаж", "prompt": "vintage style, retro aesthetic, nostalgic"},
     "fantasy": {"name": "Фэнтези", "prompt": "fantasy art, magical creatures, mystical"}
 }
+
 @app.get("/health")
 def health():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+    return JSONResponse(
+        content={"status": "healthy", "timestamp": datetime.now().isoformat()},
+        media_type="application/json; charset=utf-8"
+    )
+
 @app.get("/styles")
 def get_styles():
     styles_list = []
@@ -50,39 +61,53 @@ def get_styles():
             "name": value["name"],
             "description": value["prompt"]
         })
-    return {"styles": styles_list, "total": len(styles_list)}
+    return JSONResponse(
+        content={"styles": styles_list, "total": len(styles_list)},
+        media_type="application/json; charset=utf-8"
+    )
+
 @app.post("/generate")
 def generate(request: GenerateRequest):
     logger.info("=== НАЧАЛО GENERATE ===")
-        logger.info("Текст получен (русские символы)")
-        logger.info(f"Стиль ID: {request.style}")
+    logger.info(f"Текст получен: {request.text}")
+    logger.info(f"Стиль ID: {request.style}")
     logger.info(f"API ключ предоставлен: {bool(request.api_key)}")
+
     # Проверка стиля
     if request.style not in STYLES:
         available_styles = list(STYLES.keys())
         logger.error(f"Неверный стиль: {request.style}. Доступные: {available_styles}")
-        return {
-            "status": "error",
-            "error": f"Неверный стиль. Доступные: {available_styles}",
-            "available_styles": available_styles
-        }
+        return JSONResponse(
+            content={
+                "status": "error",
+                "error": f"Неверный стиль. Доступные: {available_styles}",
+                "available_styles": available_styles
+            },
+            media_type="application/json; charset=utf-8"
+        )
+
     # Отключаем proxy
     proxy_vars = ['http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY']
     for var in proxy_vars:
         if var in os.environ:
             del os.environ[var]
     os.environ['NO_PROXY'] = '*'
+
     # Демо режим
     if not request.api_key:
         logger.info("Режим: ДЕМО")
-        return {
-            "status": "success",
-            "mode": "demo",
-            "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1024&h=1024&fit=crop",
-            "message": f"Демо: иллюстрация в стиле '{STYLES[request.style]['name']}'",
-            "style": request.style,
-            "style_name": STYLES[request.style]["name"]
-        }
+        return JSONResponse(
+            content={
+                "status": "success",
+                "mode": "demo",
+                "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1024&h=1024&fit=crop",
+                "message": f"Демо: иллюстрация в стиле '{STYLES[request.style]['name']}'",
+                "style": request.style,
+                "style_name": STYLES[request.style]["name"]
+            },
+            media_type="application/json; charset=utf-8"
+        )
+
     # OpenAI режим
     logger.info("Режим: OPENAI")
     try:
@@ -90,16 +115,19 @@ def generate(request: GenerateRequest):
         api_key = request.api_key or os.environ.get("OPENAI_API_KEY")
         if not api_key:
             logger.error("API ключ не предоставлен и не найден в переменных окружения")
-            return {
-                "status": "error",
-                "error": "API ключ не предоставлен. Добавьте OPENAI_API_KEY в переменные окружения или укажите в запросе.",
-                "mode": "error"
-            }
+            return JSONResponse(
+                content={
+                    "status": "error",
+                    "error": "API ключ не предоставлен. Добавьте OPENAI_API_KEY в переменные окружения или укажите в запросе.",
+                    "mode": "error"
+                },
+                media_type="application/json; charset=utf-8"
+            )
+        
         client = OpenAI(api_key=api_key)
         logger.info("Клиент OpenAI создан")
-        # Кодируем текст для безопасности (уже исправлено ранее)
-        safe_text = request.text  # UTF-8 уже обработан
-        prompt = f"{STYLES[request.style]['prompt']}: {safe_text}"
+        
+        prompt = f"{STYLES[request.style]['prompt']}: {request.text}"
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
@@ -109,49 +137,60 @@ def generate(request: GenerateRequest):
         )
         image_url = response.data[0].url
         logger.info(f"OpenAI успешно: {image_url[:50]}...")
-        return {
-            "status": "success",
-            "mode": "openai",
-            "image_url": image_url,
-            "message": f"AI иллюстрация в стиле '{STYLES[request.style]['name']}'",
-            "style": request.style,
-            "style_name": STYLES[request.style]["name"]
-        }
+        
+        return JSONResponse(
+            content={
+                "status": "success",
+                "mode": "openai",
+                "image_url": image_url,
+                "message": f"AI иллюстрация в стиле '{STYLES[request.style]['name']}'",
+                "style": request.style,
+                "style_name": STYLES[request.style]["name"]
+            },
+            media_type="application/json; charset=utf-8"
+        )
     except Exception as e:
-    error_msg = str(e)
-    logger.error(f"Ошибка OpenAI (полная): {error_msg}")
-    import traceback
-    logger.error(f"Traceback: {traceback.format_exc()}")
-    # УБИРАЕМ перезапуск сервера - возвращаем демо вместо падения
-    logger.info("Возвращаем демо-режим из-за ошибки OpenAI")
-        logger.error(f"Ошибка OpenAI: {error_msg}")
+        error_msg = str(e)
+        logger.error(f"Ошибка OpenAI (полная): {error_msg}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        logger.info("Возвращаем демо-режим из-за ошибки OpenAI")
+        
         # Проверяем ошибку региона
         if 'Country' in error_msg or 'region' in error_msg or 'territory' in error_msg:
             logger.info("Обнаружена ошибка региона")
-            return {
-                "status": "success",
-                "mode": "demo_region_error",
-                "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
-                "message": "OpenAI недоступен в вашем регионе. Используется демо-изображение.",
+            return JSONResponse(
+                content={
+                    "status": "success",
+                    "mode": "demo_region_error",
+                    "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
+                    "message": "OpenAI недоступен в вашем регионе. Используется демо-изображение.",
+                    "error": error_msg,
+                    "style": request.style,
+                    "style_name": STYLES[request.style]["name"]
+                },
+                media_type="application/json; charset=utf-8"
+            )
+        
+        return JSONResponse(
+            content={
+                "status": "error",
+                "mode": "error",
                 "error": error_msg,
+                "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
                 "style": request.style,
                 "style_name": STYLES[request.style]["name"]
-            }
-        return {
-            "status": "error",
-            "mode": "error",
-            "error": error_msg,
-            "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
-            "style": request.style,
-            "style_name": STYLES[request.style]["name"]
-        }
+            },
+            media_type="application/json; charset=utf-8"
+        )
+
 # Отключение proxy при запуске
-import os
 proxy_vars = ['http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY', 'all_proxy', 'ALL_PROXY']
 for var in proxy_vars:
     if var in os.environ:
         del os.environ[var]
 os.environ['NO_PROXY'] = '*'
+
 if __name__ == "__main__":
     import uvicorn
     import os
