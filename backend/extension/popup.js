@@ -99,7 +99,7 @@ function initApp() {
             requestData.api_key = userApiKey;
         }
         // Отправляем запрос
-        fetch("http://127.0.0.1:8000/generate", {
+        fetch("https://illustraitor-ai-v2.onrender.com/generate", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -179,7 +179,7 @@ function initApp() {
             statusDiv.textContent = "❌ Ошибка: " + error.message;
             statusDiv.className = "error";
             if (error.message.includes("Failed to fetch")) {
-                statusDiv.textContent = "❌ Не могу подключиться к серверу. Убедитесь, что сервер запущен на http://127.0.0.1:8000";
+                statusDiv.textContent = "❌ Ошибка подключения к серверу Render";
             } else if (error.message.includes("Недостаточно кредитов")) {
                 statusDiv.innerHTML = "❌ Недостаточно кредитов. <a href='#' id='checkCreditsLink'>Проверить баланс</a>";
                 const checkLink = document.getElementById('checkCreditsLink');
@@ -305,3 +305,5 @@ function loadSavedApiKey() {
         console.error("❌ Ошибка загрузки API ключа:", e);
     }
 }
+
+

@@ -1,0 +1,9 @@
+﻿    } catch (error) {
+        console.error('Ошибка генерации:', error);
+        // Очищаем сообщение от старого URL
+        let errorMsg = error.message;
+        if (errorMsg.includes('127.0.0.1:8000') || errorMsg.includes('localhost:8000')) {
+            errorMsg = 'Ошибка подключения к серверу Render';
+        }
+        updateStatus(`❌ ${errorMsg}`);
+    }

@@ -9,7 +9,9 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Illustraitor AI"
+    "default_title": "Illustraitor AI",
+    "default_width": 700,
+    "default_height": 850
   },
   "icons": {
     "16": "icon16.png",

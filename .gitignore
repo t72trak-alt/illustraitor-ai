@@ -1,0 +1,17 @@
+# Секреты и конфигурация
+backend/.env
+*.env
+.env.local
+.env.*.local
+secrets/
+keys/
+# Логи и кэши
+*.log
+__pycache__/
+*.pyc
+.DS_Store
+# Системные файлы
+Thumbs.db
+# Временные файлы
+temp_fix.txt
+fix-all-urls.ps1

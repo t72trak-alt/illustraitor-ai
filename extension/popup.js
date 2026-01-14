@@ -131,8 +131,13 @@ async function generateImage() {
     };
     
     try {
-        const response = await fetch('https://illustraitor-ai-v2.onrender.com/generate', {
+                const response = await fetch('https://illustraitor-ai-v2.onrender.com/generate', {
             method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -172,12 +177,12 @@ async function generateImage() {
             document.getElementById('download-btn').style.display = 'block';
             
         } else {
-            updateStatus(`❌ Ошибка: ${data.message}`);
+            updateStatus(`❌ Ошибка сервера: ${data.message}`);
         }
         
     } catch (error) {
         console.error('Ошибка генерации:', error);
-        updateStatus(`❌ Ошибка: ${error.message}`);
+        updateStatus(`❌ Ошибка подключения к серверу Render`);
     }
 }
 
@@ -195,4 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+
+
 
