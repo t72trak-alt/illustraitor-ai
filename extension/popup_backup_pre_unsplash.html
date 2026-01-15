@@ -6,27 +6,30 @@
     html, body {
         width: 100%;
         height: 100%;
-        min-width: 500px;
-        min-height: 600px;
-        max-width: 1200px;
-        max-height: 1400px;
+        min-width: 500px;  /* Минимальная ширина */
+        min-height: 600px; /* Минимальная высота */
+        max-width: 1200px; /* Максимальная ширина */
+        max-height: 1400px; /* Максимальная высота */
         margin: 0;
         padding: 0;
-        overflow: auto;
+        overflow: auto;    /* Автоматические скроллбары если нужно */
     }
+    /* Делаем body растягиваемым */
     body {
         resize: both;
         overflow: auto;
         display: flex;
         flex-direction: column;
     }
+    /* ===== УЛУЧШЕНИЯ ИНТЕРФЕЙСА ===== */
     .container {
         flex: 1;
         padding: 20px;
         display: flex;
         flex-direction: column;
-        min-height: 0;
+        min-height: 0; /* Для корректного скроллинга */
     }
+    /* Заголовок */
     h1 {
         color: #2c3e50;
         margin-bottom: 20px;
@@ -35,6 +38,7 @@
         border-bottom: 2px solid #3498db;
         padding-bottom: 10px;
     }
+    /* Группы формы */
     .form-group {
         margin-bottom: 15px;
     }
@@ -44,6 +48,7 @@
         font-weight: 600;
         color: #34495e;
     }
+    /* Текстовое поле */
     textarea {
         width: 100%;
         min-height: 80px;
@@ -58,12 +63,14 @@
         border-color: #3498db;
         outline: none;
     }
+    /* Выбор стилей - делаем сетку */
     #style-select {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
         gap: 10px;
         margin: 10px 0;
     }
+    /* Каждый вариант стиля */
     .style-option {
         padding: 10px;
         border: 2px solid #ecf0f1;
@@ -82,6 +89,7 @@
         background: #d5f4e6;
         font-weight: bold;
     }
+    /* Поле API ключа */
     #api-key {
         width: 100%;
         padding: 10px;
@@ -90,6 +98,7 @@
         font-size: 14px;
         font-family: monospace;
     }
+    /* Кнопки */
     .button-group {
         display: flex;
         gap: 10px;
@@ -127,6 +136,7 @@
         background: #27ae60;
         transform: translateY(-2px);
     }
+    /* Изображение результата */
     #image-container {
         flex: 1;
         min-height: 300px;
@@ -146,6 +156,7 @@
         border-radius: 6px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+    /* Статус */
     #status {
         margin: 15px 0;
         padding: 12px;
@@ -172,11 +183,13 @@
         border: 2px solid #e74c3c;
         color: #c0392b;
     }
+    /* Адаптивность */
     @media (max-width: 600px) {
         #style-select {
             grid-template-columns: repeat(2, 1fr);
         }
     }
+    /* Индикатор растягивания (необязательно) */
     body::after {
         content: "↔ ↕";
         position: fixed;
@@ -193,7 +206,7 @@
         script-src 'self' 'unsafe-inline';
         style-src 'self' 'unsafe-inline';
         img-src 'self' data: https:;
-        connect-src 'self' https://illustraitor-ai-v2.onrender.com https://api.openai.com https://images.unsplash.com https://api.unsplash.com;
+        connect-src 'self' https://illustraitor-ai-v2.onrender.com https://api.openai.com https://images.unsplash.com;
         font-src 'self';
     ">
     <meta charset="utf-8">
@@ -279,19 +292,6 @@
             margin-top: 10px;
             text-align: center;
         }
-        .api-key-section, .unsplash-key-section {
-            margin: 15px 0;
-            padding: 15px;
-            border-radius: 8px;
-        }
-        .api-key-section {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-        }
-        .unsplash-key-section {
-            background: #f0f8ff;
-            border: 1px solid #d1ecf1;
-        }
     </style>
 </head>
 <body>
@@ -303,9 +303,8 @@
         <select id="style">
             <option value="">Загружаю стили...</option>
         </select>
-
-        <!-- Секция OpenAI API ключа -->
-        <div class="api-key-section">
+        <!-- Секция API ключа -->
+        <div class="api-key-section" style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
             <h4 style="margin-top: 0; color: #2c3e50;">🔑 OpenAI API Ключ (необязательно)</h4>
             
             <div style="margin-bottom: 12px;">
@@ -345,50 +344,6 @@
                 </p>
             </div>
         </div>
-
-        <!-- Секция Unsplash API ключа -->
-        <div class="unsplash-key-section">
-            <h4 style="margin-top: 0; color: #2c3e50;">📷 Unsplash API Ключ (необязательно)</h4>
-            
-            <div style="margin-bottom: 12px;">
-                <input type="password" id="unsplash-key" placeholder="Введите ваш API ключ Unsplash (Client-ID...)" 
-                       style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px;">
-            </div>
-            
-            <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                <button id="save-unsplash-key" style="flex: 1; padding: 10px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                    💾 Сохранить Unsplash ключ
-                </button>
-                <button id="clear-unsplash-key" style="flex: 1; padding: 10px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                    🗑️ Удалить Unsplash ключ
-                </button>
-            </div>
-            
-            <div style="font-size: 12px; color: #6c757d; line-height: 1.5;">
-                <p><strong>📌 Для чего нужен:</strong></p>
-                <ul style="margin: 5px 0; padding-left: 15px;">
-                    <li><strong>Без ключа Unsplash:</strong> Демо-режим с базовыми изображениями</li>
-                    <li><strong>С ключом Unsplash:</strong> Умный поиск релевантных изображений</li>
-                    <li><strong>С ключом OpenAI:</strong> AI-генерация через DALL-E 3 (лучшее качество)</li>
-                </ul>
-                
-                <p><strong>🔐 Где взять ключ:</strong></p>
-                <div style="background: #e8f6f3; padding: 8px; border-radius: 4px; margin: 5px 0;">
-                    <ol style="margin: 0; padding-left: 15px;">
-                        <li>Перейдите на <a href="https://unsplash.com/developers" target="_blank" style="color: #007bff; text-decoration: none;">Unsplash Developers</a></li>
-                        <li>Нажмите "Register as a developer"</li>
-                        <li>Создайте новое приложение</li>
-                        <li>Скопируйте "Access Key" (Client-ID)</li>
-                        <li>Вставьте ключ в поле выше</li>
-                    </ol>
-                </div>
-                
-                <p style="margin-top: 8px; padding: 6px; background: #d1ecf1; border-radius: 4px; border-left: 4px solid #17a2b8;">
-                    <strong>💡 Преимущество:</strong> Бесплатно! 50 запросов в час для умного поиска изображений
-                </p>
-            </div>
-        </div>
-
         <button id="generate">🎨 Сгенерировать изображение</button>
         <div id="status">Готов к работе...</div>
         <div id="result">

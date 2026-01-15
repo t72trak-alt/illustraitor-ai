@@ -1,24 +1,14 @@
-﻿// ==================== УПРАВЛЕНИЕ API КЛЮЧАМИ ====================
+﻿// ==================== УПРАВЛЕНИЕ API КЛЮЧОМ ====================
 
-// Загружаем сохранённые API ключи
+// Загружаем сохранённый API ключ
 async function loadApiKey() {
-    const result = await chrome.storage.local.get(['openai_api_key', 'unsplash_api_key']);
-    
-    // Загружаем OpenAI API ключ
+    const result = await chrome.storage.local.get(['openai_api_key']);
     if (result.openai_api_key) {
         const apiKeyInput = document.getElementById('api-key');
         const maskedKey = maskApiKey(result.openai_api_key);
         apiKeyInput.value = maskedKey;
         apiKeyInput.setAttribute('data-full-key', result.openai_api_key);
         updateStatus('✅ API ключ загружен');
-    }
-    
-    // Загружаем Unsplash API ключ
-    if (result.unsplash_api_key) {
-        const unsplashKeyInput = document.getElementById('unsplash-key');
-        const maskedKey = maskApiKey(result.unsplash_api_key);
-        unsplashKeyInput.value = maskedKey;
-        unsplashKeyInput.setAttribute('data-full-key', result.unsplash_api_key);
     }
 }
 
@@ -77,65 +67,12 @@ document.getElementById('save-key').addEventListener('click', async function() {
     }, 2000);
 });
 
-// Сохраняем Unsplash API ключ
-document.getElementById('save-unsplash-key').addEventListener('click', async function() {
-    const unsplashKeyInput = document.getElementById('unsplash-key');
-    let unsplashKey = unsplashKeyInput.value.trim();
-    
-    // Если поле содержит маскированный ключ, используем сохранённый
-    if (unsplashKey.includes('•') && unsplashKeyInput.getAttribute('data-full-key')) {
-        unsplashKey = unsplashKeyInput.getAttribute('data-full-key');
-    }
-    
-    if (!unsplashKey) {
-        updateStatus('⚠️ Введите Unsplash API ключ');
-        unsplashKeyInput.focus();
-        return;
-    }
-    
-    await chrome.storage.local.set({ unsplash_api_key: unsplashKey });
-    
-    // Маскируем для отображения
-    unsplashKeyInput.value = maskApiKey(unsplashKey);
-    unsplashKeyInput.setAttribute('data-full-key', unsplashKey);
-    
-    updateStatus('✅ Unsplash API ключ сохранён');
-    
-    // Показываем уведомление на 2 секунды
-    const saveBtn = this;
-    const originalText = saveBtn.textContent;
-    saveBtn.textContent = '✅ Сохранено!';
-    saveBtn.style.background = '#20c997';
-    
-    setTimeout(() => {
-        saveBtn.textContent = originalText;
-        saveBtn.style.background = '#28a745';
-    }, 2000);
-});
-
-// Удаляем OpenAI API ключ
+// Удаляем API ключ
 document.getElementById('clear-key').addEventListener('click', async function() {
     await chrome.storage.local.remove(['openai_api_key']);
     document.getElementById('api-key').value = '';
     document.getElementById('api-key').removeAttribute('data-full-key');
     updateStatus('🗑️ API ключ удалён');
-    
-    // Показываем уведомление
-    const clearBtn = this;
-    const originalText = clearBtn.textContent;
-    clearBtn.textContent = '✅ Удалено!';
-    
-    setTimeout(() => {
-        clearBtn.textContent = originalText;
-    }, 2000);
-});
-
-// Удаляем Unsplash API ключ
-document.getElementById('clear-unsplash-key').addEventListener('click', async function() {
-    await chrome.storage.local.remove(['unsplash_api_key']);
-    document.getElementById('unsplash-key').value = '';
-    document.getElementById('unsplash-key').removeAttribute('data-full-key');
-    updateStatus('🗑️ Unsplash API ключ удалён');
     
     // Показываем уведомление
     const clearBtn = this;
@@ -155,14 +92,6 @@ document.getElementById('api-key').addEventListener('focus', function() {
     }
 });
 
-// Показываем полный Unsplash ключ при фокусе
-document.getElementById('unsplash-key').addEventListener('focus', function() {
-    const fullKey = this.getAttribute('data-full-key');
-    if (fullKey && this.value.includes('•')) {
-        this.value = fullKey;
-    }
-});
-
 // Маскируем ключ при потере фокуса
 document.getElementById('api-key').addEventListener('blur', function() {
     const fullKey = this.getAttribute('data-full-key');
@@ -171,15 +100,7 @@ document.getElementById('api-key').addEventListener('blur', function() {
     }
 });
 
-// Маскируем Unsplash ключ при потере фокуса
-document.getElementById('unsplash-key').addEventListener('blur', function() {
-    const fullKey = this.getAttribute('data-full-key');
-    if (fullKey && !this.value.includes('•')) {
-        this.value = maskApiKey(fullKey);
-    }
-});
-
-// ==================== ФУНКЦИЯ ГЕНЕРАЦИИ ====================
+// ==================== МОДИФИЦИРОВАННАЯ ФУНКЦИЯ ГЕНЕРАЦИИ ====================
 
 async function generateImage() {
     const prompt = document.getElementById('prompt').value.trim();
@@ -193,36 +114,32 @@ async function generateImage() {
     
     updateStatus('⏳ Генерирую изображение...');
     
-    // Получаем API ключи пользователя
-    const result = await chrome.storage.local.get(['openai_api_key', 'unsplash_api_key']);
+    // Получаем API ключ пользователя
+    const result = await chrome.storage.local.get(['openai_api_key']);
     let userApiKey = result.openai_api_key || null;
-    let unsplashKey = result.unsplash_api_key || null;
     
-    // Если ключи замаскированы, используем сохранённые
+    // Если ключ замаскирован, используем сохранённый
     const apiKeyInput = document.getElementById('api-key');
-    const unsplashKeyInput = document.getElementById('unsplash-key');
-    
     if (apiKeyInput.getAttribute('data-full-key') && !userApiKey) {
         userApiKey = apiKeyInput.getAttribute('data-full-key');
-    }
-    
-    if (unsplashKeyInput.getAttribute('data-full-key') && !unsplashKey) {
-        unsplashKey = unsplashKeyInput.getAttribute('data-full-key');
     }
     
     const requestBody = {
         text: prompt,
         style: style,
-        api_key: userApiKey,
-        unsplash_key: unsplashKey
+        api_key: userApiKey  // Отправляем ключ пользователя или null
     };
     
     try {
-        const response = await fetch('https://illustraitor-ai-v2.onrender.com/generate', {
+                const response = await fetch('https://illustraitor-ai-v2.onrender.com/generate', {
             method: 'POST',
+            mode: 'cors',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
+            },
+            headers: {
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(requestBody)
         });
@@ -242,15 +159,13 @@ async function generateImage() {
             // Обновляем статус с информацией о режиме
             const modeText = data.mode === 'openai' 
                 ? 'AI-генерация (DALL-E 3)' 
-                : 'Демо-режим';
+                : 'Демо-режим (стоковые изображения)';
             
-            const sourceText = data.demo_source === 'unsplash'
-                ? 'Unsplash изображение'
-                : data.demo_source === 'unsplash_fallback'
-                    ? 'Unsplash (запасное)'
-                    : 'базовое изображение';
+            const keySource = data.uses_user_key 
+                ? 'ваш API ключ' 
+                : 'серверный ключ';
             
-            updateStatus(`✅ Изображение сгенерировано в стиле "${data.style_name}" (${modeText}, ${sourceText})`);
+            updateStatus(`✅ Изображение сгенерировано в стиле "${data.style_name}" (${modeText}, ${keySource})`);
             
             // Кнопка скачивания
             document.getElementById('download-btn').onclick = function() {
@@ -273,7 +188,7 @@ async function generateImage() {
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 
-// Загружаем API ключи при открытии попапа
+// Загружаем API ключ при открытии попапа
 document.addEventListener('DOMContentLoaded', function() {
     loadApiKey();
     document.getElementById('generate-btn').addEventListener('click', generateImage);
@@ -285,3 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+
+
+
