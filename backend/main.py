@@ -1,22 +1,33 @@
-﻿from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 from openai import OpenAI
 import os
 import logging
-import traceback
 from datetime import datetime
+import requests
 
 # Настройка логирования
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(
+    title="Illustraitor AI API",
+    description="API для генерации изображений через DALL-E 3",
+    version="2.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -25,8 +36,9 @@ class GenerateRequest(BaseModel):
     text: str
     style: str = "fantasy"
     api_key: Optional[str] = None
+    size: str = "1024x1024"
+    quality: str = "standard"
 
-# Стили (15 вариантов)
 STYLES = {
     "business": {"name": "Бизнес", "prompt": "professional corporate style, clean lines, modern"},
     "creative": {"name": "Креативный", "prompt": "artistic, imaginative, colorful, abstract"},
@@ -45,15 +57,44 @@ STYLES = {
     "fantasy": {"name": "Фэнтези", "prompt": "fantasy art, magical creatures, mystical"}
 }
 
+DEMO_IMAGES = {
+    "business": "https://images.unsplash.com/photo-1497366754035-f200968a6e72",
+    "creative": "https://images.unsplash.com/photo-1542744095-fcf48d80b0fd",
+    "fantasy": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
+    "default": "https://images.unsplash.com/photo-1519681393784-d120267933ba"
+}
+
+# ========== КРИТИЧЕСКИ ВАЖНЫЕ ЭНДПОИНТЫ ==========
+
+@app.head("/")
+async def head_root():
+    """HEAD запрос для Render health checks"""
+    return
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return HTMLResponse(f"""
+    <html>
+        <body>
+            <h1>Illustraitor AI API v2.0</h1>
+            <p>✅ Server is running</p>
+            <p>{datetime.now()}</p>
+            <p><a href="/docs">📖 Swagger</a></p>
+        </body>
+    </html>
+    """)
+
 @app.get("/health")
-def health():
-    return JSONResponse(
-        content={"status": "healthy", "timestamp": datetime.now().isoformat()},
-        media_type="application/json; charset=utf-8"
-    )
+async def health_check():
+    return JSONResponse({
+        "status": "healthy",
+        "version": "2.0.0",
+        "timestamp": datetime.utcnow().isoformat(),
+        "service": "illustraitor-ai"
+    })
 
 @app.get("/styles")
-def get_styles():
+async def get_styles():
     styles_list = []
     for key, value in STYLES.items():
         styles_list.append({
@@ -61,107 +102,43 @@ def get_styles():
             "name": value["name"],
             "description": value["prompt"]
         })
-    return JSONResponse(
-        content={"styles": styles_list, "total": len(styles_list)},
-        media_type="application/json; charset=utf-8"
-    )
+    return {"styles": styles_list, "total": len(styles_list)}
 
 @app.post("/generate")
-def generate(request: GenerateRequest):
-    logger.info("=== НАЧАЛО GENERATE ===")
-    logger.info(f"Текст получен: {request.text}")
-    logger.info(f"Стиль ID: {request.style}")
-    logger.info(f"API ключ предоставлен: {bool(request.api_key)}")
-
-    # Проверка стиля
-    if request.style not in STYLES:
-        available_styles = list(STYLES.keys())
-        logger.error(f"Неверный стиль: {request.style}. Доступные: {available_styles}")
-        return JSONResponse(
-            content={
-                "status": "error",
-                "error": f"Неверный стиль. Доступные: {available_styles}",
-                "available_styles": available_styles
-            },
-            media_type="application/json; charset=utf-8"
-        )
-
-    # Отключаем proxy
-    proxy_vars = ['http_proxy', 'https_proxy', 'HTTP_PROXY', 'HTTPS_PROXY']
-    for var in proxy_vars:
-        if var in os.environ:
-            del os.environ[var]
-    os.environ['NO_PROXY'] = '*'
-
-    # Демо режим
+async def generate(request: GenerateRequest):
     if not request.api_key:
-        logger.info("Режим: ДЕМО")
-        return JSONResponse(
-            content={
-                "status": "success",
-                "mode": "demo",
-                "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1024&h=1024&fit=crop",
-                "message": f"Демо: иллюстрация в стиле '{STYLES[request.style]['name']}'",
-                "style": request.style,
-                "style_name": STYLES[request.style]["name"]
-            },
-            media_type="application/json; charset=utf-8"
-        )
-
-    # OpenAI режим
-    logger.info("Режим: OPENAI")
+        return {
+            "status": "success",
+            "mode": "demo",
+            "image_url": DEMO_IMAGES.get(request.style, DEMO_IMAGES["default"]),
+            "message": f"Демо: стиль '{STYLES[request.style]['name']}'"
+        }
+    
     try:
-        # Используем ключ из запроса или из переменных окружения
-        api_key = request.api_key or os.environ.get("OPENAI_API_KEY")
-        if not api_key:
-            logger.error("API ключ не предоставлен и не найден в переменных окружения")
-            return JSONResponse(
-                content={
-                    "status": "error",
-                    "error": "API ключ не предоставлен. Добавьте OPENAI_API_KEY в переменные окружения или укажите в запросе.",
-                    "mode": "error"
-                },
-                media_type="application/json; charset=utf-8"
-            )
-        
-        client = OpenAI(api_key=api_key)
-        logger.info("Клиент OpenAI создан")
-        
-        prompt = f"{STYLES[request.style]['prompt']}: {request.text}"
+        client = OpenAI(api_key=request.api_key)
         response = client.images.generate(
             model="dall-e-3",
-            prompt=prompt,
-            size="1024x1024",
-            quality="standard",
+            prompt=f"{STYLES[request.style]['prompt']}: {request.text}",
+            size=request.size,
+            quality=request.quality,
             n=1
         )
-        image_url = response.data[0].url
-        logger.info(f"OpenAI успешно: {image_url[:50]}...")
-        
-        return JSONResponse(
-            content={
-                "status": "success",
-                "mode": "openai",
-                "image_url": image_url,
-                "message": f"AI иллюстрация в стиле '{STYLES[request.style]['name']}'",
-                "style": request.style,
-                "style_name": STYLES[request.style]["name"]
-            },
-            media_type="application/json; charset=utf-8"
-        )
+        return {
+            "status": "success",
+            "mode": "openai",
+            "image_url": response.data[0].url,
+            "message": f"AI иллюстрация в стиле '{STYLES[request.style]['name']}'"
+        }
     except Exception as e:
-        error_msg = str(e)
-        logger.error(f"Ошибка OpenAI: {error_msg}")
-        logger.error(f"Traceback: {traceback.format_exc()}")
+        return {
+            "status": "success",
+            "mode": "fallback",
+            "image_url": DEMO_IMAGES.get(request.style, DEMO_IMAGES["default"]),
+            "message": "Ошибка, используется демо-изображение",
+            "error": str(e)[:200]
+        }
 
-        return JSONResponse(
-            content={
-                "status": "error",
-                "mode": "error",
-                "error": "OpenAI API error",
-                "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
-                "style": request.style,
-                "style_name": STYLES[request.style]["name"]
-            },
-            media_type="application/json; charset=utf-8"
-        )
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
